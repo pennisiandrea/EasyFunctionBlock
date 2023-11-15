@@ -3,11 +3,13 @@ using System.Net.Mime;
 using System.Xml;
 using System.Resources;
 using FilesContents;
+using System.Text.RegularExpressions;
 
 namespace EasyFunctionBlock
 {
     class MyFunctionBlock
     {
+        public const int MAX_FB_NAME_LEN = 17;
         private string ThisDirectory;
         private string? PackageName;
         private string FunctionBlockName;
@@ -35,7 +37,7 @@ namespace EasyFunctionBlock
         private void CreateExecute()
         {
             string FileContent;
-            string FileName;
+            string? FileName;
 
             // Main file
             FileContent = ExecuteFB.MAIN_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();
@@ -60,7 +62,7 @@ namespace EasyFunctionBlock
             
             // IEC file
             FileContent = ExecuteFB.IEC_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();
-            FileName = Directory.GetFiles(ThisDirectory,ExecuteFB.IEC_FILE_NAME).First();
+            FileName = Directory.GetFiles(ThisDirectory,ExecuteFB.IEC_FILE_NAME).FirstOrDefault();
             if (FileName != null) MergeIECFiles(FileName,FileContent);
             else 
             {
@@ -182,53 +184,65 @@ namespace EasyFunctionBlock
 
             // Get function block name
             string? FunctionBlockName;
-            if (argv.Count()>=2) FunctionBlockName = argv[2];
-            else
-            { 
-                try
+            try
+            {
+                if (argv.Count()>=2) 
                 {
-                    Console.WriteLine("Write the functionblock name: ");
-                    FunctionBlockName = Console.ReadLine();
-                    if (FunctionBlockName == null) throw new Exception("Exception: Empty functionblock name");
+                    if (argv[2].Length > MyFunctionBlock.MAX_FB_NAME_LEN) FunctionBlockName = argv[2];
+                    else throw new Exception("Exception: FunctionBlock name too long. Max " + MyFunctionBlock.MAX_FB_NAME_LEN.ToString() + " chars!");                    
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                    Console.ReadLine();
-                    return;
+                else
+                { 
+                    var InputOk = false;
+                    do
+                    {
+                        Console.WriteLine("Write the functionblock name: ");
+                        FunctionBlockName = Console.ReadLine();
+                        if (FunctionBlockName == null) throw new Exception("Exception: Empty FunctionBlock name");
+                        else if (FunctionBlockName.Length > MyFunctionBlock.MAX_FB_NAME_LEN ) Console.WriteLine("FunctionBlock name too long. Max " + MyFunctionBlock.MAX_FB_NAME_LEN.ToString() + " chars!");
+                        else if (!Regex.IsMatch(FunctionBlockName,"^[a-zA-Z][a-zA-Z0-9]*$")) Console.WriteLine("FunctionBlock name invalid!");
+                        else InputOk = true;
+                    } while (!InputOk);                    
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                Console.ReadLine();
+                return;
             }
 
             // Get function block type
             int FunctionBlockType;
-            if (argv.Count()>=3)
+            try 
             {
-                try 
+                if (argv.Count()>=3)
                 {
                     FunctionBlockType = int.Parse(argv[3]);
+                    if (FunctionBlockType<1 || FunctionBlockType>2) throw new Exception("Exception: Unknown functionblock type.");
                 }
-                catch (Exception e) 
+                else
                 {
-                    Console.WriteLine(e.ToString());
-                    Console.ReadLine();
-                    return;
+                    var InputOk = false;
+                    string? answ;
+                    do
+                    {
+                        Console.WriteLine("Select the functionblock type: 1)Enable 2)Executable");
+                        answ = Console.ReadLine();
+                        if (answ == null) throw new Exception("Exception: Empty functionblock type");
+                        else if (!Regex.IsMatch(answ,"^[0-9]+$")) Console.WriteLine("FunctionBlock type invalid!"); 
+                        else if (int.Parse(answ)<1 || int.Parse(answ)>2) Console.WriteLine("FunctionBlock type out of range!"); 
+                        else InputOk = true;
+
+                    } while (!InputOk);   
+                    FunctionBlockType = int.Parse(answ);                   
                 }
             }
-            else
+            catch (Exception e) 
             {
-                try
-                {
-                    Console.WriteLine("Write the functionblock type: 1)Enable 2)Executable");
-                    string? answ = Console.ReadLine();
-                    if (answ == null) throw new Exception("Exception: Empty functionblock type");
-                    FunctionBlockType = int.Parse(answ);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                    Console.ReadLine();
-                    return;
-                }
+                Console.WriteLine(e.ToString());
+                Console.ReadLine();
+                return;
             }
 
             // Create MyFunctionBlock object
