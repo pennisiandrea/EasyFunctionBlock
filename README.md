@@ -1,9 +1,13 @@
-This project was designed to simplify the procedure to create a new function block on Automation Studio which follows the clean code requirements.
+The goal of this project is to make the creation of a function block easier and faster. 
+The function block created will be compatible with B&R clean coding guidelines.
 
 Who to use:
-    1) You need the executable folder located in EasyFunctionBlock\bin\Debug\net8.0
-    2) On Automation Studio right click on the library (or program) you want your new function block be hosted and choose "Open with Explorer"
-    3) In the opened folder copy the folder indicated in the first point.
-    4) Run EasyFunctionBlock.exe
-    5) Follow the instructions in the console.
-    6) Remove the folder from the Automation Studio project. 
+    1) Download the file "newest_sw_release\EasyFunctionBlock.exe".
+    1) Execute it in the target folder (can be the library folder or the program folder. Check Tips section below).
+    2) Follow the instructions in the console.
+
+Tips:
+    To open the library folder or the program folder, from AS right click on it and choose "Open with Explorer"
+
+Risks:
+    Use at your own risk! 
