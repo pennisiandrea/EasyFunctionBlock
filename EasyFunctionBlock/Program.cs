@@ -14,6 +14,7 @@ namespace EasyFunctionBlock
         private string? PackageName;
         private string FunctionBlockName;
         private int FunctionBlockType;
+        private string FunctionBlockDirectory;
 
         private const string FB_NAME_KEYWORD = "__FBNAME__";
         private const string PKG_NAME_KEYWORD = "__PKGNAME__";
@@ -24,6 +25,7 @@ namespace EasyFunctionBlock
             FunctionBlockName = functionBlockName;
             FunctionBlockType = functionBlockType;
             PackageName = Path.GetFileName(ThisDirectory);
+            FunctionBlockDirectory = Path.Combine(ThisDirectory,FunctionBlockName);
 
             if (FunctionBlockType<1 || FunctionBlockType>2) throw new Exception("Exception: Unknown functionblock type.");
             if (!Directory.Exists(ThisDirectory)) throw new Exception("Exception: This directory not found.");
@@ -39,16 +41,38 @@ namespace EasyFunctionBlock
             string FileContent;
             string? FileName;
 
+            // Create sub package for functionblock
+            Directory.CreateDirectory(FunctionBlockDirectory);
+
             // Main file
             FileContent = ExecuteFB.MAIN_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();
             FileName = ExecuteFB.MAIN_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
-            CreateFile(ThisDirectory,FileName,FileContent);
+            CreateFile(FunctionBlockDirectory,FileName,FileContent);
 
             // Actions file
             FileContent = ExecuteFB.ACTIONS_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();
             FileName = ExecuteFB.ACTIONS_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
-            CreateFile(ThisDirectory,FileName,FileContent);
-            
+            CreateFile(FunctionBlockDirectory,FileName,FileContent);
+
+            // Package file
+            FileContent = ExecuteFB.SUBPKG_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
+            FileName = ExecuteFB.SUBPKG_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
+            CreateFile(FunctionBlockDirectory,FileName,FileContent); 
+
+            // IEC file
+            FileContent = ExecuteFB.IEC_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();    
+            FileName = Directory.GetFiles(ThisDirectory,ExecuteFB.IEC_FILE_NAME).FirstOrDefault();
+            if (FileName == null)
+            {
+                FileName = ExecuteFB.IEC_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).Replace("*","lby");
+                CreateFile(ThisDirectory,FileName,FileContent);
+            } 
+            else
+            {           
+                if (!HasIECFilePackages(FileName))  ConvertIECFromFilesToObjects(FileName);
+                MergeIECFiles(FileName,FileContent);
+            }
+
             // Types file
             FileContent = ExecuteFB.TYPES_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
             FileName = ExecuteFB.TYPES_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
@@ -59,32 +83,45 @@ namespace EasyFunctionBlock
             FileName = ExecuteFB.FUNCTION_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
             if (File.Exists(FileName)) MergeFUNFiles(FileName, "\n" + FileContent);
             else CreateFile(ThisDirectory,FileName,FileContent);
-            
-            // IEC file
-            FileContent = ExecuteFB.IEC_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();
-            FileName = Directory.GetFiles(ThisDirectory,ExecuteFB.IEC_FILE_NAME).FirstOrDefault();
-            if (FileName != null) MergeIECFiles(FileName,FileContent);
-            else 
-            {
-                FileName = ExecuteFB.IEC_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).Replace("*","lby");
-                CreateFile(ThisDirectory,FileName,FileContent);
-            }
+
         }
         private void CreateEnable()
         {
             string FileContent;
             string? FileName;
 
+            // Create sub package for functionblock
+            Directory.CreateDirectory(FunctionBlockDirectory);
+
             // Main file
             FileContent = EnableFB.MAIN_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();
             FileName = EnableFB.MAIN_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
-            CreateFile(ThisDirectory,FileName,FileContent);
+            CreateFile(FunctionBlockDirectory,FileName,FileContent);
 
             // Actions file
             FileContent = EnableFB.ACTIONS_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();
             FileName = EnableFB.ACTIONS_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
-            CreateFile(ThisDirectory,FileName,FileContent);
+            CreateFile(FunctionBlockDirectory,FileName,FileContent);
+
+            // Package file
+            FileContent = EnableFB.SUBPKG_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
+            FileName = EnableFB.SUBPKG_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
+            CreateFile(FunctionBlockDirectory,FileName,FileContent); 
             
+            // IEC file
+            FileContent = EnableFB.IEC_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();    
+            FileName = Directory.GetFiles(ThisDirectory,EnableFB.IEC_FILE_NAME).FirstOrDefault();
+            if (FileName == null)
+            {
+                FileName = EnableFB.IEC_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).Replace("*","lby");
+                CreateFile(ThisDirectory,FileName,FileContent);
+            } 
+            else
+            {           
+                if (!HasIECFilePackages(FileName)) ConvertIECFromFilesToObjects(FileName);
+                MergeIECFiles(FileName,FileContent);
+            }
+
             // Types file
             FileContent = EnableFB.TYPES_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
             FileName = EnableFB.TYPES_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
@@ -94,17 +131,7 @@ namespace EasyFunctionBlock
             FileContent =EnableFB.FUNCTION_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
             FileName = EnableFB.FUNCTION_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
             if (File.Exists(FileName)) MergeFUNFiles(FileName, "\n" + FileContent);
-            else CreateFile(ThisDirectory,FileName,FileContent);
-            
-            // IEC file
-            FileContent = EnableFB.IEC_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).TrimStart();
-            FileName = Directory.GetFiles(ThisDirectory,EnableFB.IEC_FILE_NAME).FirstOrDefault();
-            if (FileName != null) MergeIECFiles(FileName,FileContent);
-            else 
-            {
-                FileName = EnableFB.IEC_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName).Replace("*","lby");
-                CreateFile(ThisDirectory,FileName,FileContent);
-            }
+            else CreateFile(ThisDirectory,FileName,FileContent);           
         }
         private void CreateFile(string path, string name, string content)
         {
@@ -124,32 +151,94 @@ namespace EasyFunctionBlock
         private void MergeIECFiles(string destPath, string content)
         {
             XmlDocument TemplateXmlFile = new XmlDocument();
+            XmlDocument TemplateXmlFileNS = new XmlDocument();
             XmlDocument ThisXmlFile = new XmlDocument();
-            XmlNode? ThisFilesNode;
-            XmlNodeList? TemplateFileNodes;
+            XmlNode? ThisObjectsNode;
+            XmlNode? TemplateObjectsNode;
+            XmlNodeList? TemplateObjectNodes;
 
             ThisXmlFile.Load(destPath);
-            ThisFilesNode = ThisXmlFile.SelectSingleNode("//*[local-name()='Files']");
-            if (ThisFilesNode == null) throw new Exception("Cannot find Files node in This IEC file.");
+            ThisObjectsNode = ThisXmlFile.SelectSingleNode("//*[local-name()='Objects']");
+            if (ThisObjectsNode == null) throw new Exception("Cannot find Objects node in This IEC file.");
             
             TemplateXmlFile.LoadXml(content);
-            TemplateFileNodes = TemplateXmlFile.SelectNodes("//*[local-name()='File']");         
-            if (TemplateFileNodes == null) throw new Exception("Cannot find File nodes in template IEC file.");
+            TemplateObjectsNode = TemplateXmlFile.SelectSingleNode("//*[local-name()='Objects']");
+            if (TemplateObjectsNode == null) throw new Exception("wrong template IEC");
 
-            foreach(XmlNode node in TemplateFileNodes) ThisFilesNode.AppendChild(ThisXmlFile.ImportNode(node,true));                  
+            TemplateXmlFileNS.LoadXml(content.Replace(TemplateObjectsNode.NamespaceURI,ThisObjectsNode.NamespaceURI));
+            TemplateObjectNodes = TemplateXmlFileNS.SelectNodes("//*[local-name()='Object']");                     
+            if (TemplateObjectNodes == null) throw new Exception("Cannot find Object nodes in template IEC file.");
+
+            foreach(XmlNode node in TemplateObjectNodes)
+            {
+                ThisObjectsNode.AppendChild(ThisXmlFile.ImportNode(node.Clone(),true));   
+            }
 
             // Check for duplicates
-            foreach(XmlNode node1 in ThisFilesNode)
+            foreach(XmlNode node1 in ThisObjectsNode)
             {
                 var cnt = 0;
-                foreach(XmlNode node2 in ThisFilesNode)
+                foreach(XmlNode node2 in ThisObjectsNode)
                 {
                     if (node1.InnerText == node2.InnerText) cnt = cnt + 1;
-                    if (cnt>1) ThisFilesNode.RemoveChild(node2);
+                    if (cnt>1) ThisObjectsNode.RemoveChild(node2);
                 }
             }
 
             ThisXmlFile.Save(destPath);
+        }
+        private bool HasIECFilePackages(string Path)
+        {
+            XmlDocument ThisXmlFile = new XmlDocument();
+            XmlNode? ThisFilesNode;
+
+            if (!File.Exists(Path)) throw new Exception("Exception: IEC file not found!");
+            ThisXmlFile.Load(Path);
+            ThisFilesNode = ThisXmlFile.SelectSingleNode("//*[local-name()='Objects']");
+
+            return ThisFilesNode != null;
+        }
+        private void ConvertIECFromFilesToObjects(string Path)
+        {
+            XmlDocument ThisXmlFile = new XmlDocument();
+            XmlNode? ThisFilesNode;
+
+            ThisXmlFile.Load(Path);
+            ThisFilesNode = ThisXmlFile.SelectSingleNode("//*[local-name()='Files']");
+            if (ThisFilesNode == null) throw new Exception("Cannot find Files node in This IEC file.");
+            
+            XmlNode NewObjectsNode = ThisXmlFile.CreateElement("Objects",ThisFilesNode.NamespaceURI);
+
+            foreach(XmlNode node in ThisFilesNode){
+                XmlNode NewObjectNode = ThisXmlFile.CreateElement("Object",ThisFilesNode.NamespaceURI);
+                XmlAttribute AttributeType = ThisXmlFile.CreateAttribute("Type");
+                AttributeType.Value = "File";
+
+                if (node.Attributes != null && NewObjectNode != null)
+                {
+                    if (NewObjectNode.Attributes != null)
+                    {
+                        NewObjectNode.Attributes.Append(AttributeType);
+                        foreach(XmlAttribute attribute in node.Attributes) 
+                            NewObjectNode.Attributes.Append((XmlAttribute)attribute.Clone());                        
+                    }
+                    NewObjectNode.InnerText = node.InnerText;
+                    NewObjectsNode.AppendChild(NewObjectNode);
+                }
+            }   
+
+            if (ThisFilesNode.ParentNode == null)
+            {
+                ThisFilesNode.InsertBefore(NewObjectsNode,ThisFilesNode);
+                ThisFilesNode.RemoveAll();
+            }
+            else
+            {
+                ThisFilesNode.ParentNode.InsertBefore(NewObjectsNode,ThisFilesNode);
+                ThisFilesNode.ParentNode.RemoveChild(ThisFilesNode);
+            }
+
+            ThisXmlFile.Save(Path);
         }
     }
 
@@ -157,8 +246,6 @@ namespace EasyFunctionBlock
     {
         static void Main(string[] argv)
         {
-            //Console.Clear();
-            
             // Get This folder
             string? ThisDirectory;
             if (argv.Count()>=1) 

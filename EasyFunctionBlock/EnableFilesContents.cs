@@ -7,20 +7,20 @@ namespace FilesContents
         """
         FUNCTION_BLOCK __FBNAME__ 
 
-        IF Enable THEN     
-            IF NOT Internal.EnableOld THEN 
-                __FBNAME__CheckParameters;
-            END_IF;
+            IF Enable THEN     
+                IF NOT Internal.EnableOld THEN 
+                    __FBNAME__CheckParameters;
+                END_IF;
 
-            IF Internal.ParametersValid THEN
-                __FBNAME__CyclicCode;
+                IF Internal.ParametersValid THEN
+                    __FBNAME__CyclicCode;
+                END_IF;
+                
+                Internal.EnableOld := Enable;		
+            ELSE
+                __FBNAME__ResetInternal;
+                __FBNAME__ResetOutputs;		
             END_IF;
-            
-            Internal.EnableOld := Enable;		
-        ELSE
-            __FBNAME__ResetInternal;
-            __FBNAME__ResetOutputs;		
-        END_IF;
 
         END_FUNCTION_BLOCK
         """;
@@ -110,13 +110,25 @@ namespace FilesContents
         <?xml version="1.0" encoding="utf-8"?>
         <?AutomationStudio FileVersion="4.9"?>
         <Library SubType="IEC" xmlns="http://br-automation.co.at/AS/Library">
-        <Files>
-            <File Description="Exported data types">__FBNAME__Types.typ</File>
-            <File Description="Exported functions and function blocks">__PKGNAME__.fun</File>
-            <File>__FBNAME__.st</File>
-            <File>__FBNAME__Actions.st</File>
-        </Files>
+        <Objects>
+            <Object Type="File" Description="Exported functions and function blocks">__PKGNAME__.fun</Object>
+            <Object Type="File" Description="Exported data types">__FBNAME__Types.typ</Object>
+            <Object Type="Package">__FBNAME__</Object>
+        </Objects>
         </Library>
+        """;
+        
+        public const string SUBPKG_FILE_NAME = "Package.pkg";
+        public const string SUBPKG_FILE_CONTENT = 
+        """        
+        <?xml version="1.0" encoding="utf-8"?>
+        <?AutomationStudio FileVersion="4.9"?>
+        <Package xmlns="http://br-automation.co.at/AS/Package">
+        <Objects>
+            <Object Type="File">__FBNAME__.st</Object>
+            <Object Type="File">__FBNAME__Actions.st</Object>
+        </Objects>
+        </Package>
         """;
         
     }
