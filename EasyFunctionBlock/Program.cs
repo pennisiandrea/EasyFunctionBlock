@@ -57,7 +57,7 @@ namespace EasyFunctionBlock
             // Function file
             FileContent = ExecuteFB.FUNCTION_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
             FileName = ExecuteFB.FUNCTION_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
-            if (File.Exists(FileName)) MergeFUNFiles(FileName,FileContent);
+            if (File.Exists(FileName)) MergeFUNFiles(FileName, "\n" + FileContent);
             else CreateFile(ThisDirectory,FileName,FileContent);
             
             // IEC file
@@ -91,9 +91,9 @@ namespace EasyFunctionBlock
             CreateFile(ThisDirectory,FileName,FileContent);
             
             // Function file
-            FileContent = EnableFB.FUNCTION_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
+            FileContent =EnableFB.FUNCTION_FILE_CONTENT.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
             FileName = EnableFB.FUNCTION_FILE_NAME.Replace(PKG_NAME_KEYWORD,PackageName).Replace(FB_NAME_KEYWORD,FunctionBlockName);
-            if (File.Exists(FileName)) MergeFUNFiles(FileName,FileContent);
+            if (File.Exists(FileName)) MergeFUNFiles(FileName, "\n" + FileContent);
             else CreateFile(ThisDirectory,FileName,FileContent);
             
             // IEC file
